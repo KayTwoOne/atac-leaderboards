@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATAC-01 | Leaderboards</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+
+    <div class="main-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-line">ATAC</div>
+                <div class="brand-sub">ADVANCED THREAT ACQUISITION COURSE</div>
+                <div class="brand-divider"></div>
+            </div>
+
+            <!-- SEARCH BAR -->
+            <div class="search-container">
+                <span class="search-icon">⌕</span>
+                <input type="text" id="operator-search" placeholder="SEARCH OPERATOR..." spellcheck="false">
+            </div>
+            <div class="nav-breaker"></div>
+
+            <nav class="nav-group">
+                <div class="nav-label">// MAIN DATABASE</div>
+                <button class="nav-btn active" data-view="global">
+                    <span class="nav-icon">◈</span>
+                    <span>GLOBAL LEADERBOARD</span>
+                </button>
+            </nav>
+
+            <nav class="nav-group">
+                <div class="nav-label">// RANKED LADDERS</div>
+                <button class="nav-btn" data-view="solo">
+                    <span class="nav-icon">·</span>
+                    <span>SOLO (1 OPERATOR)</span>
+                </button>
+                <button class="nav-btn" data-view="duo">
+                    <span class="nav-icon">:</span>
+                    <span>DUO (2 OPERATORS)</span>
+                </button>
+                <button class="nav-btn" data-view="trio">
+                    <span class="nav-icon">⁖</span>
+                    <span>TRIO (3 OPERATORS)</span>
+                </button>
+                <button class="nav-btn" data-view="squad">
+                    <span class="nav-icon">⁘</span>
+                    <span>SQUAD (4+ OPERATORS)</span>
+                </button>
+            </nav>
+
+            <div class="nav-breaker"></div>
+
+            <nav class="nav-group">
+                <div class="nav-label">// COMBAT METRICS</div>
+                <button class="nav-btn" data-view="accuracy">
+                    <span class="nav-icon">⌖</span>
+                    <span>ACCURACY RECORDS</span>
+                </button>
+                <button class="nav-btn" data-view="pilots">
+                    <span class="nav-icon">☠</span>
+                    <span>PILOT KILLS</span>
+                </button>
+                <button class="nav-btn" data-view="maxdist">
+                    <span class="nav-icon">⇲</span>
+                    <span>MAX DISTANCE</span>
+                </button>
+            </nav>
+
+            <footer class="leaderboard-footer">
+                <div class="status-row">
+                    <span class="status-dot"></span>
+                    <span id="status-text">CONNECTING...</span>
+                </div>
+                
+                <a href="submit.html" class="nav-btn submit-redirect-btn">
+                    <span class="nav-icon">⇪</span>
+                    <span>SUBMIT SCORE</span>
+                </a>
+
+                <span class="footer-copy">ATAC-01 // GLOBAL LEADERBOARDS</span>
+            </footer>
+        </aside>
+
+        <main class="content-panel">
+            <header class="content-header">
+                <div class="header-left">
+                    <div class="eyebrow">VERTICAL ENGAGEMENT MODULE // AERIAL</div>
+                    <h1 id="view-title">GLOBAL LEADERBOARD</h1>
+                    <p id="view-sub">Combined Session Score Records</p>
+                </div>
+                
+                <div class="header-right meta-stack">
+                    <div class="meta-badge" id="last-updated-meta">UPDATED: --</div>
+                    <div class="meta-badge wipe-badge" id="next-reset-meta">WIPE IN: --</div>
+                    <div class="meta-badge" id="total-entries-meta">ENTRIES: --</div>
+                </div>
+            </header>
+
+            <!-- DISCLAIMER BANNER -->
+            <div class="disclaimer-banner">
+                <span class="warning-icon">⚠</span>
+                <span><span class="highlight">// OPERATOR ADVISORY:</span> For persistent Service Record tracking across seasons, we highly recommend maintaining the same Operator Name across all deployments.</span>
+            </div>
+
+            <div class="table-container">
+                <table id="leaderboard">
+                    <thead id="leaderboard-head"></thead>
+                    <tbody id="leaderboard-body">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 50px; color: var(--border-bright); font-family: 'Quantico', sans-serif; letter-spacing: 2px;">
+                                ESTABLISHING SECURE CONNECTION...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- DOSSIER MODAL OVERLAY -->
+    <div id="dossier-modal" class="dossier-overlay hidden">
+        <div class="dossier-box" id="dossier-content">
+            <button class="dossier-close" onclick="closeDossier()">×</button>
+            <div class="dossier-header">
+                <span class="terminal-eyebrow">// SERVICE RECORD</span>
+                <h2 class="terminal-title" id="dossier-name">OPERATOR</h2>
+                <p class="terminal-sub" id="dossier-class" style="color: inherit; font-weight: bold; margin-top: 5px;">CLASSIFICATION: STANDARD</p>
+            </div>
+            <div class="dossier-grid">
+                <div class="stat-box"><span class="stat-label">DEPLOYMENTS</span><span class="stat-val" id="dos-deps">0</span></div>
+                <div class="stat-box"><span class="stat-label">HIGH SCORE</span><span class="stat-val" id="dos-score">0</span></div>
+                <div class="stat-box"><span class="stat-label">PILOT KILLS</span><span class="stat-val" id="dos-kills">0</span></div>
+                <div class="stat-box"><span class="stat-label">MAX DISTANCE</span><span class="stat-val" id="dos-dist">0m</span></div>
+                <div class="stat-box"><span class="stat-label">AVG ACCURACY</span><span class="stat-val" id="dos-acc">0%</span></div>
+                <div class="stat-box"><span class="stat-label">PREFERRED UNIT</span><span class="stat-val" id="dos-unit">SOLO</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
