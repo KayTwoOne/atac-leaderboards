@@ -184,10 +184,44 @@ function buildTable() {
     document.getElementById("view-sub").textContent = viewConfig.sub;
 
     let targetData = activeSeasonData;
+    
+    // Apply team size filters
     if (viewConfig.filterSize !== null) {
         targetData = activeSeasonData.filter(row => viewConfig.filterSize === 4 ? row.teamSize >= 4 : row.teamSize === viewConfig.filterSize);
     }
 
+    // --- NEW LOGIC: ONE ENTRY PER OPERATOR/TEAM ---
+    const bestRuns = new Map();
+    
+    targetData.forEach(row => {
+        // Extract just the names (strip the scores) and sort them alphabetically
+        // This ensures "Alpha & Bravo" is recognized as the same team as "Bravo & Alpha"
+        const teamIdentity = row.roster.toUpperCase().split(',')
+            .map(p => p.split(':')[0].trim())
+            .sort()
+            .join(', ');
+
+        if (!bestRuns.has(teamIdentity)) {
+            bestRuns.set(teamIdentity, row);
+        } else {
+            const existingRun = bestRuns.get(teamIdentity);
+            let isBetter = false;
+            
+            // Determine "Best" based on the current active tab
+            if (currentView === "accuracy") isBetter = row.acc > existingRun.acc;
+            else if (currentView === "pilots") isBetter = row.pilots > existingRun.pilots;
+            else if (currentView === "maxdist") isBetter = row.maxdist > existingRun.maxdist;
+            else isBetter = row.score > existingRun.score;
+
+            if (isBetter) bestRuns.set(teamIdentity, row);
+        }
+    });
+
+    // Convert the Map back into an array of only the personal bests
+    targetData = Array.from(bestRuns.values());
+    // ----------------------------------------------
+
+    // Sort the final filtered list
     let sortedData;
     if (currentView === "accuracy") sortedData = targetData.sort((a, b) => b.acc - a.acc);
     else if (currentView === "pilots") sortedData = targetData.sort((a, b) => b.pilots - a.pilots);
@@ -195,7 +229,7 @@ function buildTable() {
     else sortedData = targetData.sort((a, b) => b.score - a.score);
 
     const top50 = sortedData.slice(0, 50);
-    document.getElementById("total-entries-meta").textContent = `ENTRIES: ${sortedData.length}`;
+    document.getElementById("total-entries-meta").textContent = `ENTRIES: ${sortedData.length}`; // Note: This now reflects unique teams, not total runs
 
     const thead = document.getElementById("leaderboard-head");
     thead.innerHTML = "";
