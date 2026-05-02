@@ -26,42 +26,28 @@ The ATAC-01 Database is a fully automated, serverless leaderboard architecture d
 
 ## ⌖ KEY FEATURES
 
-* **The "Invisible Bouncer" Security:** A custom backend intercepts raw Arma 3 hashes, mathematically validates the checksum in milliseconds, and instantly rejects tampered or fraudulent scores before they ever touch the database.
+* **The "Invisible Bouncer" Security:** A custom backend intercepts raw Arma 3 hashes, validates structure and uniqueness, and instantly rejects duplicate or malformed submissions before they ever touch the database.
 * **Automated 14-Day Seasons:** An automated cron-trigger sweeps the active ladder, permanently backs up the data to a secure archive, and wipes the public database clean every 14 days to initiate a new tournament cycle.
 * **Interactive Service Records:** Operators can click on any name on the board to pull up a secure Career Dossier—a live-calculated aggregation of their deployments, highest scores, confirmed pilot kills, max engagement distances, and average accuracy across all seasons.
 
 ## 🎖️ DYNAMIC THREAT TIERS
 
-Elite operators are automatically assigned classification UI glows based on their all-time statistics. The system dynamically reads the database to award these legacy achievements:
+Elite operators are automatically assigned classification UI glows based on their all-time career statistics. Tiers are checked in priority order — the highest qualifying tier is awarded.
 
 <div align="center">
-  <table>
-    <tr>
-      <td align="center">
-        <b>DIAMOND CLASSIFICATION</b><br>
-        <i>Awarded for All-Time Top 5 Presence</i><br>
-        <img src="assets/dossier-diamond.png" alt="Diamond Tier Dossier" width="400">
-      </td>
-      <td align="center">
-        <b>GOLD CLASSIFICATION</b><br>
-        <i>Awarded for 90%+ Career Accuracy</i><br>
-        <img src="assets/dossier-gold.png" alt="Gold Tier Dossier" width="400">
-      </td>
-    </tr>
-    <tr>
-      <td align="center">
-        <b>PINK CLASSIFICATION</b><br>
-        <i>Awarded for 1500m+ Max Distance Hit</i><br>
-        <img src="assets/dossier-pink.png" alt="Pink Tier Dossier" width="400">
-      </td>
-      <td align="center">
-        <b>STANDARD CLASSIFICATION</b><br>
-        <i>Baseline Operator Service Record</i><br>
-        <img src="assets/dossier-standard.png" alt="Standard Tier Dossier" width="400">
-      </td>
-    </tr>
-  </table>
+
+| TIER | COLOUR | REQUIREMENT |
+|:---:|:---:|:---|
+| ◈ **DIAMOND** | Hyper-Cyan | 80%+ avg accuracy **AND** 1000m+ max distance **AND** 10+ deployments |
+| ◈ **EMERALD** | Green | 100+ career pilot kills |
+| ◈ **PINK** | Magenta | 1000m+ career max distance |
+| ◈ **GOLD** | Gold | 70%+ career avg accuracy |
+| ◈ **VETERAN** | Steel Blue | 15+ total deployments |
+| ◈ **STANDARD** | White/Silver | Baseline operator service record |
+
 </div>
+
+Each operator's Career Dossier also displays live progress bars toward every threshold, so operators always know exactly what they need to unlock the next classification.
 
 ## ⚙ ARCHITECTURE
 
@@ -83,5 +69,5 @@ This application operates on a zero-maintenance, highly scalable tech stack:
 <i>"Ensure your Operator Name matches previous entries to maintain your career Service Record."</i><br>
 <b>© 2026 ATAC-01 // ALL RIGHTS RESERVED</b><br><br>
 
-<sub style="color: rgba(255, 255, 255, 0.4); letter-spacing: 1px;">// THE ATAC-01 PROJECT WAS BROUGHT TO LIFE WITH ASSISTANCE FROM GEMINI</sub>
+<sub style="color: rgba(255, 255, 255, 0.4); letter-spacing: 1px;">// THE ATAC-01 PROJECT WAS BROUGHT TO LIFE WITH ASSISTANCE FROM CLAUDE</sub>
 </div>
