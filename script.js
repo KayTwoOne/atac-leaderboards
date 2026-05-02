@@ -467,7 +467,7 @@ function openDossier(operatorInput) {
         box.innerHTML = `
             <button class="dossier-close" onclick="closeDossier()">×</button>
             <div class="dossier-split">
-                <div class="dossier-side ${stats1.tierClass}" style="color: inherit; text-shadow: inherit;">
+                <div class="dossier-side ${stats1.tierClass}">
                     ${buildDossierInner(stats1)}
                 </div>
                 <div class="vs-divider"><div class="vs-badge">VS</div></div>
