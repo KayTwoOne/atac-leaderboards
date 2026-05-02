@@ -368,16 +368,11 @@ function calculateStats(opName) {
     }
     const unitLabels = {1: "SOLO", 2: "DUO", 3: "TRIO", 4: "SQUAD"};
 
-    const checkTop5 = (metric) => {
-        const sorted = [...allTimeData].sort((a,b) => b[metric] - a[metric]).slice(0, 5);
-        return sorted.some(r => r.roster.toUpperCase().split(',').map(p => p.split(':')[0].trim()).includes(targetOp));
-    };
-
     let tierClass = "tier-standard";
     let tierText = "CLASSIFICATION: STANDARD OP";
 
-    if (checkTop5('score') || checkTop5('acc') || checkTop5('pilots') || checkTop5('maxdist')) {
-        tierClass = "tier-diamond"; tierText = "CLASSIFICATION: ELITE (ALL-TIME TOP 5)";
+    if (avgAcc >= 90 && maxDist >= 1500 && opRuns.length >= 10) {
+        tierClass = "tier-diamond"; tierText = "CLASSIFICATION: ELITE OPERATOR";
     } else if (totalKills >= 500) {
         tierClass = "tier-emerald"; tierText = "CLASSIFICATION: ANTI-AIR SPECIALIST";
     } else if (maxDist >= 1500) {
