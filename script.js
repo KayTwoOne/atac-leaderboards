@@ -396,3 +396,42 @@ function buildDossierInner(stats) {
         </div>
     `;
 }
+
+// dynamic modal generator
+function openDossier(operatorInput) {
+    const box = document.getElementById('dossier-content');
+    
+    // check if it's a single operator or a rivalry array
+    if (typeof operatorInput === 'string') {
+        const stats = calculateStats(operatorInput);
+        if (!stats) return;
+        
+        box.innerHTML = `<button class="dossier-close" onclick="closeDossier()">×</button>` + buildDossierInner(stats);
+        box.className = `dossier-box ${stats.tierClass}`;
+
+    } else if (Array.isArray(operatorInput)) {
+        const stats1 = calculateStats(operatorInput[0]);
+        const stats2 = calculateStats(operatorInput[1]);
+        if (!stats1 || !stats2) return;
+
+        box.innerHTML = `
+            <button class="dossier-close" onclick="closeDossier()">×</button>
+            <div class="dossier-split">
+                <div class="dossier-side ${stats1.tierClass}" style="color: inherit; text-shadow: inherit;">
+                    ${buildDossierInner(stats1)}
+                </div>
+                <div class="vs-divider"><div class="vs-badge">VS</div></div>
+                <div class="dossier-side ${stats2.tierClass}">
+                    ${buildDossierInner(stats2)}
+                </div>
+            </div>
+        `;
+        box.className = `dossier-box split-view`; // neutral box holding two colored sides
+    }
+
+    document.getElementById('dossier-modal').classList.remove('hidden');
+}
+
+function closeDossier() {
+    document.getElementById('dossier-modal').classList.add('hidden');
+}
