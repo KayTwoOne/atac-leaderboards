@@ -371,14 +371,16 @@ function calculateStats(opName) {
     let tierClass = "tier-standard";
     let tierText = "CLASSIFICATION: STANDARD OP";
 
-    if (avgAcc >= 90 && maxDist >= 1500 && opRuns.length >= 10) {
+    if (avgAcc >= 80 && maxDist >= 1000 && opRuns.length >= 10) {
         tierClass = "tier-diamond"; tierText = "CLASSIFICATION: ELITE OPERATOR";
-    } else if (totalKills >= 500) {
+    } else if (totalKills >= 100) {
         tierClass = "tier-emerald"; tierText = "CLASSIFICATION: ANTI-AIR SPECIALIST";
-    } else if (maxDist >= 1500) {
+    } else if (maxDist >= 1000) {
         tierClass = "tier-pink"; tierText = "CLASSIFICATION: EXTREME LONG-RANGE";
-    } else if (avgAcc >= 90) {
+    } else if (avgAcc >= 70) {
         tierClass = "tier-gold"; tierText = "CLASSIFICATION: DEADEYE";
+    } else if (opRuns.length >= 15) {
+        tierClass = "tier-veteran"; tierText = "CLASSIFICATION: SEASONED OPERATOR";
     }
 
     return { 
@@ -430,8 +432,8 @@ function buildDossierInner(stats) {
             ${rank.svgMarkup}
             <div>
                 <span class="terminal-eyebrow">// ${rank.title}</span>
-                <h2 class="terminal-title" style="color: inherit; text-shadow: inherit;">${stats.name}</h2>
-                <p class="terminal-sub" style="color: inherit; font-weight: bold; margin-top: 5px;">${stats.tierText}</p>
+                <h2 class="terminal-title">${stats.name}</h2>
+                <p class="terminal-sub" style="font-weight: bold; margin-top: 5px;">${stats.tierText}</p>
             </div>
         </div>
         <div class="dossier-grid">
