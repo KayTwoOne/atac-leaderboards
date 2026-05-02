@@ -19,11 +19,14 @@
                 <div class="brand-divider"></div>
             </div>
 
-            <!-- SEARCH BAR -->
+            <!-- search & rivalry module -->
             <div class="search-container">
                 <span class="search-icon">⌕</span>
                 <input type="text" id="operator-search" placeholder="SEARCH OPERATOR..." spellcheck="false">
             </div>
+            <button id="rivalry-btn" class="rivalry-btn hidden">
+                <!-- injected via js -->
+            </button>
             <div class="nav-breaker"></div>
 
             <nav class="nav-group">
@@ -102,7 +105,14 @@
                 </div>
             </header>
 
-            <!-- DISCLAIMER BANNER -->
+            <!-- live recent transmissions feed -->
+            <div class="ticker-wrapper">
+                <div class="ticker-label">LIVE FEED</div>
+                <div class="ticker-marquee">
+                    <span id="ticker-text">CONNECTING TO COMM NETWORK...</span>
+                </div>
+            </div>
+
             <div class="disclaimer-banner">
                 <span class="warning-icon">⚠</span>
                 <span><span class="highlight">// OPERATOR ADVISORY:</span> For persistent Service Record tracking across seasons, we highly recommend maintaining the same Operator Name across all deployments.</span>
@@ -123,23 +133,10 @@
         </main>
     </div>
 
-    <!-- DOSSIER MODAL OVERLAY -->
+    <!-- player dossier popup (injected via js now) -->
     <div id="dossier-modal" class="dossier-overlay hidden">
         <div class="dossier-box" id="dossier-content">
-            <button class="dossier-close" onclick="closeDossier()">×</button>
-            <div class="dossier-header">
-                <span class="terminal-eyebrow">// SERVICE RECORD</span>
-                <h2 class="terminal-title" id="dossier-name">OPERATOR</h2>
-                <p class="terminal-sub" id="dossier-class" style="color: inherit; font-weight: bold; margin-top: 5px;">CLASSIFICATION: STANDARD</p>
-            </div>
-            <div class="dossier-grid">
-                <div class="stat-box"><span class="stat-label">DEPLOYMENTS</span><span class="stat-val" id="dos-deps">0</span></div>
-                <div class="stat-box"><span class="stat-label">HIGH SCORE</span><span class="stat-val" id="dos-score">0</span></div>
-                <div class="stat-box"><span class="stat-label">PILOT KILLS</span><span class="stat-val" id="dos-kills">0</span></div>
-                <div class="stat-box"><span class="stat-label">MAX DISTANCE</span><span class="stat-val" id="dos-dist">0m</span></div>
-                <div class="stat-box"><span class="stat-label">AVG ACCURACY</span><span class="stat-val" id="dos-acc">0%</span></div>
-                <div class="stat-box"><span class="stat-label">PREFERRED UNIT</span><span class="stat-val" id="dos-unit">SOLO</span></div>
-            </div>
+            <!-- populated by script.js to allow single or split-screen views -->
         </div>
     </div>
 
