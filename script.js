@@ -339,13 +339,52 @@ function calculateStats(opName) {
     };
 }
 
+// dynamically draws a military rank patch based on total deployments
+function generateRankPatch(deployments) {
+    let rankTitle = "PRIVATE";
+    let shapes = "";
+
+    if (deployments >= 50) {
+        rankTitle = "ATAC COMMANDER"; // The 5-Point Star
+        shapes = `<polygon points="50,20 60,40 80,40 65,55 70,75 50,65 30,75 35,55 20,40 40,40" fill="currentColor"/>`;
+    } else if (deployments >= 40) {
+        rankTitle = "FIELD MAJOR"; // 3 Stacked Diamonds
+        shapes = `<polygon points="50,15 65,30 50,45 35,30" fill="currentColor"/><polygon points="50,40 65,55 50,70 35,55" fill="currentColor"/><polygon points="50,65 65,80 50,95 35,80" fill="currentColor"/>`;
+    } else if (deployments >= 30) {
+        rankTitle = "CAPTAIN"; // 2 Vertical Bars
+        shapes = `<rect x="35" y="25" width="10" height="50" fill="currentColor"/><rect x="55" y="25" width="10" height="50" fill="currentColor"/>`;
+    } else if (deployments >= 20) {
+        rankTitle = "LIEUTENANT"; // 1 Vertical Bar
+        shapes = `<rect x="45" y="25" width="10" height="50" fill="currentColor"/>`;
+    } else if (deployments >= 10) {
+        rankTitle = "SERGEANT"; // 3 Chevrons
+        shapes = `<polyline points="20,40 50,20 80,40" fill="none" stroke="currentColor" stroke-width="10" stroke-linejoin="miter"/><polyline points="20,60 50,40 80,60" fill="none" stroke="currentColor" stroke-width="10" stroke-linejoin="miter"/><polyline points="20,80 50,60 80,80" fill="none" stroke="currentColor" stroke-width="10" stroke-linejoin="miter"/>`;
+    } else if (deployments >= 5) {
+        rankTitle = "CORPORAL"; // 2 Chevrons
+        shapes = `<polyline points="25,45 50,25 75,45" fill="none" stroke="currentColor" stroke-width="10" stroke-linejoin="miter"/><polyline points="25,65 50,45 75,65" fill="none" stroke="currentColor" stroke-width="10" stroke-linejoin="miter"/>`;
+    } else {
+        rankTitle = "PRIVATE"; // 1 Chevron
+        shapes = `<polyline points="30,55 50,35 70,55" fill="none" stroke="currentColor" stroke-width="10" stroke-linejoin="miter"/>`;
+    }
+
+    return {
+        title: rankTitle,
+        svgMarkup: `<svg viewBox="0 0 100 100" style="width: 80px; height: 80px; border: 1px solid var(--border-color); border-radius: 4px; background: rgba(0,0,0,0.4); flex-shrink: 0; color: inherit;">${shapes}</svg>`
+    };
+}
+
 // helper to build the grid html
 function buildDossierInner(stats) {
+    const rank = generateRankPatch(stats.deps);
+
     return `
-        <div class="dossier-header">
-            <span class="terminal-eyebrow">// SERVICE RECORD</span>
-            <h2 class="terminal-title" style="color: inherit; text-shadow: inherit;">${stats.name}</h2>
-            <p class="terminal-sub" style="color: inherit; font-weight: bold; margin-top: 5px;">${stats.tierText}</p>
+        <div class="dossier-header" style="display: flex; align-items: center; gap: 20px;">
+            ${rank.svgMarkup}
+            <div>
+                <span class="terminal-eyebrow">// ${rank.title}</span>
+                <h2 class="terminal-title" style="color: inherit; text-shadow: inherit;">${stats.name}</h2>
+                <p class="terminal-sub" style="color: inherit; font-weight: bold; margin-top: 5px;">${stats.tierText}</p>
+            </div>
         </div>
         <div class="dossier-grid">
             <div class="stat-box"><span class="stat-label">DEPLOYMENTS</span><span class="stat-val">${stats.deps}</span></div>
@@ -356,43 +395,4 @@ function buildDossierInner(stats) {
             <div class="stat-box"><span class="stat-label">PREFERRED UNIT</span><span class="stat-val">${stats.unit}</span></div>
         </div>
     `;
-}
-
-// dynamic modal generator
-function openDossier(operatorInput) {
-    const box = document.getElementById('dossier-content');
-    
-    // check if it's a single operator or a rivalry array
-    if (typeof operatorInput === 'string') {
-        const stats = calculateStats(operatorInput);
-        if (!stats) return;
-        
-        box.innerHTML = `<button class="dossier-close" onclick="closeDossier()">×</button>` + buildDossierInner(stats);
-        box.className = `dossier-box ${stats.tierClass}`;
-
-    } else if (Array.isArray(operatorInput)) {
-        const stats1 = calculateStats(operatorInput[0]);
-        const stats2 = calculateStats(operatorInput[1]);
-        if (!stats1 || !stats2) return;
-
-        box.innerHTML = `
-            <button class="dossier-close" onclick="closeDossier()">×</button>
-            <div class="dossier-split">
-                <div class="dossier-side ${stats1.tierClass}" style="color: inherit; text-shadow: inherit;">
-                    ${buildDossierInner(stats1)}
-                </div>
-                <div class="vs-divider"><div class="vs-badge">VS</div></div>
-                <div class="dossier-side ${stats2.tierClass}">
-                    ${buildDossierInner(stats2)}
-                </div>
-            </div>
-        `;
-        box.className = `dossier-box split-view`; // neutral box holding two colored sides
-    }
-
-    document.getElementById('dossier-modal').classList.remove('hidden');
-}
-
-function closeDossier() {
-    document.getElementById('dossier-modal').classList.add('hidden');
 }
