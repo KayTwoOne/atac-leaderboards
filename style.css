@@ -402,3 +402,120 @@ tbody tr.highlight-row td {
 .dossier-box.tier-standard { border-color: #dce4e8; box-shadow: 0 0 40px rgba(220, 228, 232, 0.1); }
 .dossier-box.tier-standard .terminal-title, .dossier-box.tier-standard #dossier-class { color: #ffffff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.4); }
 .dossier-box.tier-standard .stat-box { border-color: rgba(220, 228, 232, 0.2); }
+
+/* =========================================================
+   LIVE TICKER & RIVALRY UPGRADES
+========================================================= */
+
+/* The Marquee Ticker */
+.ticker-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid var(--border-color);
+    padding: 8px 20px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.ticker-label {
+    font-family: 'Quantico', sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    color: var(--danger);
+    letter-spacing: 2px;
+    padding-right: 15px;
+    margin-right: 15px;
+    border-right: 1px solid var(--border-color);
+    flex-shrink: 0;
+    animation: pulse-red 2s infinite;
+}
+
+.ticker-marquee {
+    flex-grow: 1;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+#ticker-text {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--primary-color);
+    letter-spacing: 1px;
+    padding-left: 100%;
+    animation: marquee 35s linear infinite;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+@keyframes pulse-red {
+    0% { color: var(--danger); text-shadow: 0 0 5px var(--danger); }
+    50% { color: #fff; text-shadow: none; }
+    100% { color: var(--danger); text-shadow: 0 0 5px var(--danger); }
+}
+
+/* Rivalry Button */
+.rivalry-btn {
+    display: block;
+    width: calc(100% - 40px);
+    margin: -10px 20px 20px 20px;
+    padding: 10px;
+    background-color: rgba(255, 68, 102, 0.1);
+    border: 1px solid rgba(255, 68, 102, 0.4);
+    border-radius: 4px;
+    color: #fff;
+    font-family: 'Quantico', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.rivalry-btn:hover {
+    background-color: var(--danger);
+    box-shadow: 0 0 15px rgba(255, 68, 102, 0.4);
+}
+
+/* Split-Screen Dossier Layout */
+.dossier-split {
+    display: flex;
+    gap: 30px;
+    align-items: stretch;
+}
+
+.dossier-side {
+    flex: 1;
+}
+
+.vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2px;
+    background: linear-gradient(to bottom, transparent, var(--border-color), transparent);
+    position: relative;
+}
+
+.vs-badge {
+    background-color: var(--bg-color);
+    color: var(--border-bright);
+    font-family: 'Quantico', sans-serif;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    position: absolute;
+}
+
+/* Modifying the box for split view to be wider */
+.dossier-box.split-view {
+    max-width: 950px;
+}
+.dossier-box.tier-standard { border-color: #dce4e8; box-shadow: 0 0 40px rgba(220, 228, 232, 0.1); }
+.dossier-box.tier-standard .terminal-title, .dossier-box.tier-standard #dossier-class { color: #ffffff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.4); }
+.dossier-box.tier-standard .stat-box { border-color: rgba(220, 228, 232, 0.2); }
