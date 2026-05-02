@@ -35,7 +35,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 terminal.style.borderColor = "var(--success)";
                 msg.style.color = "var(--success)";
                 msg.innerHTML = `VALIDATION SUCCESSFUL.<br>RECORD SECURELY LOGGED. REDIRECTING TO DATABASE...`;
-                setTimeout(() => { window.location.href = "index.html"; }, 3500);
+
+                let highlightParam = '';
+                try {
+                    const parts = hashVal.split('|');
+                    if (parts.length >= 5) {
+                        const firstName = parts[4].split(',')[0].split(':')[0].trim();
+                        if (firstName) highlightParam = `?highlight=${encodeURIComponent(firstName)}`;
+                    }
+                } catch(e) {}
+
+                setTimeout(() => { window.location.href = `index.html${highlightParam}`; }, 3500);
             } else {
                 throw new Error(result.message || "HASH REJECTED BY SERVER.");
             }
