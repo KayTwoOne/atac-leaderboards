@@ -533,6 +533,3 @@ tbody tr.highlight-row td {
 .dossier-box.split-view {
     max-width: 950px;
 }
-.dossier-box.tier-standard { border-color: #dce4e8; box-shadow: 0 0 40px rgba(220, 228, 232, 0.1); }
-.dossier-box.tier-standard .terminal-title, .dossier-box.tier-standard #dossier-class { color: #ffffff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.4); }
-.dossier-box.tier-standard .stat-box { border-color: rgba(220, 228, 232, 0.2); }
