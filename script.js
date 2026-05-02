@@ -1,7 +1,5 @@
-// CONNECTED TO: Submissions Tab (gid=0)
+// Database Connections
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_qo5j17dEIfzFRUndSzZDaLYHyHBq-UHaVziSH3u5X4QD598YGNnOehyEA7lLPoRHZdJuAMUCNy2j/pub?gid=0&single=true&output=csv";
-
-// CONNECTED TO: Archive Tab (gid=1947026137)
 const ARCHIVE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_qo5j17dEIfzFRUndSzZDaLYHyHBq-UHaVziSH3u5X4QD598YGNnOehyEA7lLPoRHZdJuAMUCNy2j/pub?gid=1947026137&single=true&output=csv";
 
 const VIEWS = {
@@ -15,35 +13,57 @@ const VIEWS = {
     maxdist: { title: "MAX DISTANCE", sub: "Ranked by longest confirmed hit", filterSize: null, columns: [ { label: "RANK", format: "rank" }, { label: "DIFFICULTY", format: "diff" }, { label: "DISTANCE (m)", format: "maxdist" }, { label: "OPERATOR ROSTER", format: "roster" } ] }
 };
 
-let fullData = [];     // Active Season Data (For Leaderboards)
-let careerData = [];   // All-Time Combined Data (For Service Records)
+let activeSeasonData = []; 
+let allTimeData = [];      
 let currentView = "global";
-let dataLoaded = false;
-let currentSearchQuery = ""; 
+let isReady = false;
+let searchTerm = ""; 
 
 document.addEventListener("DOMContentLoaded", () => {
-    bindNav();
-    fetchData();
-    startCountdown(); 
+    setupNavigation();
+    pullDatabases();
+    initWipeTimer(); 
     
-    document.getElementById("operator-search").addEventListener("input", (e) => {
-        currentSearchQuery = e.target.value.toLowerCase().trim();
-        applySearchHighlight();
+    const searchInput = document.getElementById("operator-search");
+    const rivalryBtn = document.getElementById("rivalry-btn");
+
+    // live search and rivalry detector
+    searchInput.addEventListener("input", (e) => {
+        searchTerm = e.target.value.toLowerCase().trim();
+        updateSearchHighlights();
+
+        // if they separate two names with a comma, check if we can trigger rivalry mode
+        if (searchTerm.includes(',')) {
+            const players = searchTerm.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            
+            if (players.length === 2) {
+                const p1Exists = allTimeData.some(r => r.roster.toLowerCase().includes(players[0]));
+                const p2Exists = allTimeData.some(r => r.roster.toLowerCase().includes(players[1]));
+
+                if (p1Exists && p2Exists) {
+                    rivalryBtn.innerHTML = `⚔ INITIATE RIVALRY: ${players[0].toUpperCase()} VS ${players[1].toUpperCase()}`;
+                    rivalryBtn.classList.remove("hidden");
+                    rivalryBtn.onclick = () => openDossier([players[0], players[1]]);
+                    return;
+                }
+            }
+        }
+        rivalryBtn.classList.add("hidden");
     });
 
-    // Close dossier if clicking the black background
+    // click outside to close dossier
     document.getElementById('dossier-modal').addEventListener('click', (e) => {
-        if(e.target.id === 'dossier-modal') closeDossier();
+        if(e.target.id === 'dossier-modal') document.getElementById('dossier-modal').classList.add('hidden');
     });
 });
 
-// --- 14-DAY WIPE TIMER LOGIC ---
-function startCountdown() {
-    const wipeEl = document.getElementById("next-reset-meta");
-    function tick() {
+function initWipeTimer() {
+    const wipeDisplay = document.getElementById("next-reset-meta");
+    function tickClock() {
         const now = new Date();
         const londonStr = now.toLocaleString("en-US", { timeZone: "Europe/London", hour12: false });
-        if (!londonStr || !londonStr.includes(',')) return;
+        if (!londonStr || !londonStr.includes(',')) return; 
+        
         const parts = londonStr.split(', ');
         const dateParts = parts[0].split('/');
         const timeParts = parts[1].match(/\d+/g);
@@ -60,39 +80,34 @@ function startCountdown() {
         const m = Math.floor((diff / 1000 / 60) % 60);
         const s = Math.floor((diff / 1000) % 60);
 
-        const displayStr = `${d}D ${h.toString().padStart(2, '0')}H ${m.toString().padStart(2, '0')}M ${s.toString().padStart(2, '0')}S`;
-        if (wipeEl) wipeEl.textContent = `WIPE IN: ${displayStr}`;
+        if (wipeDisplay) wipeDisplay.textContent = `WIPE IN: ${d}D ${h.toString().padStart(2, '0')}H ${m.toString().padStart(2, '0')}M ${s.toString().padStart(2, '0')}S`;
     }
-    tick(); 
-    setInterval(tick, 1000);
+    tickClock(); setInterval(tickClock, 1000);
 }
 
-function bindNav() {
+function setupNavigation() {
     document.querySelectorAll(".nav-btn[data-view]").forEach(btn => {
         btn.addEventListener("click", () => {
             document.querySelectorAll(".nav-btn[data-view]").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             currentView = btn.getAttribute("data-view");
-            renderView();
+            buildTable();
         });
     });
 }
 
-// Promise wrapper for PapaParse to handle multiple URLs cleanly
 function fetchCSV(url) {
     return new Promise((resolve, reject) => {
         Papa.parse(url + "&_=" + new Date().getTime(), {
-            download: true,
-            header: true,
-            skipEmptyLines: true,
-            transformHeader: function(h) { return h.trim(); },
-            complete: (results) => resolve(results.data),
-            error: (err) => reject(err)
+            download: true, header: true, skipEmptyLines: true,
+            transformHeader: h => h.trim(),
+            complete: results => resolve(results.data),
+            error: err => reject(err)
         });
     });
 }
 
-function parseRow(row) {
+function formatRow(row) {
     return {
         difficulty: row.Difficulty || "UNKNOWN",
         teamSize: parseInt(row.TeamSize) || 1,
@@ -104,98 +119,117 @@ function parseRow(row) {
     };
 }
 
-async function fetchData() {
-    setStatus("connecting");
-    
+async function pullDatabases() {
+    updateStatus("connecting");
     try {
-        // Fetch Submissions AND Archive simultaneously
-        const [activeResults, archiveResults] = await Promise.all([
+        const [activeCSV, archiveCSV] = await Promise.all([
             fetchCSV(SHEET_CSV_URL),
             fetchCSV(ARCHIVE_CSV_URL)
         ]);
 
-        // Process Active Data (For UI Tables)
-        fullData = activeResults.filter(row => row.Roster && row.Difficulty).map(parseRow);
+        activeSeasonData = activeCSV.filter(r => r.Roster && r.Difficulty).map(formatRow);
+        const pastSeasons = archiveCSV.filter(r => r.Roster && r.Difficulty).map(formatRow);
+        allTimeData = [...activeSeasonData, ...pastSeasons];
         
-        // Process Archive Data
-        const parsedArchive = archiveResults.filter(row => row.Roster && row.Difficulty).map(parseRow);
-
-        // Merge both into the All-Time Career Vault
-        careerData = [...fullData, ...parsedArchive];
+        isReady = true;
+        updateStatus("online");
         
-        dataLoaded = true;
-        setStatus("online");
+        const timestamp = new Date().toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZoneName: 'short' });
+        document.getElementById("last-updated-meta").textContent = `UPDATED: ${timestamp}`;
         
-        const date = new Date();
-        const timeStr = date.toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZoneName: 'short' });
-        document.getElementById("last-updated-meta").textContent = `UPDATED: ${timeStr}`;
-        
-        renderView();
+        startLiveTicker(activeSeasonData);
+        buildTable();
 
     } catch (err) {
-        setStatus("error"); 
-        showError();
+        updateStatus("error"); 
+        document.getElementById("leaderboard-body").innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 50px; color: var(--danger); font-family: 'Quantico';">ERROR — COULD NOT REACH DATABASE</td></tr>`;
     }
 }
 
-function setStatus(state) {
+function updateStatus(state) {
     const dot = document.querySelector(".status-dot");
-    const text = document.getElementById("status-text");
+    const txt = document.getElementById("status-text");
     dot.className = "status-dot";
-    if (state === "connecting") text.textContent = "CONNECTING...";
-    if (state === "online") { dot.classList.add("online"); text.textContent = "NETWORK ONLINE"; }
-    if (state === "error") { dot.classList.add("error"); text.textContent = "CONNECTION LOST"; }
+    
+    if (state === "connecting") txt.textContent = "CONNECTING...";
+    if (state === "online") { dot.classList.add("online"); txt.textContent = "NETWORK ONLINE"; }
+    if (state === "error") { dot.classList.add("error"); txt.textContent = "CONNECTION LOST"; }
 }
 
-function renderView() {
-    if (!dataLoaded) return;
-    const cfg = VIEWS[currentView];
-
-    document.getElementById("view-title").textContent = cfg.title;
-    document.getElementById("view-sub").textContent = cfg.sub;
-
-    // Leaderboards ONLY display Active Season Data
-    let filtered = fullData;
-    if (cfg.filterSize !== null) {
-        filtered = fullData.filter(row => cfg.filterSize === 4 ? row.teamSize >= 4 : row.teamSize === cfg.filterSize);
+function startLiveTicker(data) {
+    const textEl = document.getElementById("ticker-text");
+    if (!data.length) {
+        textEl.textContent = "AWAITING NEW TRANSMISSIONS...";
+        return;
     }
 
-    let sorted;
-    if (currentView === "accuracy") sorted = filtered.sort((a, b) => b.acc - a.acc);
-    else if (currentView === "pilots") sorted = filtered.sort((a, b) => b.pilots - a.pilots);
-    else if (currentView === "maxdist") sorted = filtered.sort((a, b) => b.maxdist - a.maxdist);
-    else sorted = filtered.sort((a, b) => b.score - a.score);
+    // grab the 5 most recent records
+    const recent = data.slice(-5).reverse();
+    const messages = recent.map(r => {
+        // extract just the names without scores for brevity
+        const names = r.roster.split(',').map(p => p.split(':')[0]).join(' & ');
+        return `[NEW REC] ${names.toUpperCase()} LOGGED ${r.score} PTS (${r.maxdist}m MAX DIST)`;
+    });
 
-    const sliced = sorted.slice(0, 50);
-    document.getElementById("total-entries-meta").textContent = `ENTRIES: ${sorted.length}`;
+    // double up the string so the marquee loop is seamless
+    const feedString = messages.join(' &nbsp;&nbsp;&nbsp;◈&nbsp;&nbsp;&nbsp; ');
+    textEl.innerHTML = feedString + '&nbsp;&nbsp;&nbsp;◈&nbsp;&nbsp;&nbsp;' + feedString;
+}
+
+function buildTable() {
+    if (!isReady) return;
+    const viewConfig = VIEWS[currentView];
+
+    document.getElementById("view-title").textContent = viewConfig.title;
+    document.getElementById("view-sub").textContent = viewConfig.sub;
+
+    let targetData = activeSeasonData;
+    if (viewConfig.filterSize !== null) {
+        targetData = activeSeasonData.filter(row => viewConfig.filterSize === 4 ? row.teamSize >= 4 : row.teamSize === viewConfig.filterSize);
+    }
+
+    let sortedData;
+    if (currentView === "accuracy") sortedData = targetData.sort((a, b) => b.acc - a.acc);
+    else if (currentView === "pilots") sortedData = targetData.sort((a, b) => b.pilots - a.pilots);
+    else if (currentView === "maxdist") sortedData = targetData.sort((a, b) => b.maxdist - a.maxdist);
+    else sortedData = targetData.sort((a, b) => b.score - a.score);
+
+    const top50 = sortedData.slice(0, 50);
+    document.getElementById("total-entries-meta").textContent = `ENTRIES: ${sortedData.length}`;
 
     const thead = document.getElementById("leaderboard-head");
     thead.innerHTML = "";
-    const hRow = document.createElement("tr");
-    cfg.columns.forEach(col => {
+    const headerRow = document.createElement("tr");
+    viewConfig.columns.forEach(col => {
         const th = document.createElement("th");
         th.textContent = col.label;
-        hRow.appendChild(th);
+        headerRow.appendChild(th);
     });
-    thead.appendChild(hRow);
+    thead.appendChild(headerRow);
 
     const tbody = document.getElementById("leaderboard-body");
     tbody.innerHTML = "";
 
-    if (sliced.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${cfg.columns.length}" style="text-align: center; padding: 50px; color: var(--border-bright); font-family: 'Quantico', sans-serif; letter-spacing: 2px;">NO RECORDS FOUND</td></tr>`;
+    if (top50.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${viewConfig.columns.length}" style="text-align: center; padding: 50px; color: var(--border-bright); font-family: 'Quantico'; letter-spacing: 2px;">NO RECORDS FOUND</td></tr>`;
         return;
     }
 
-    sliced.forEach((row, index) => {
-        const rank = index + 1;
+    top50.forEach((row, idx) => {
+        const rank = idx + 1;
         const tr = document.createElement("tr");
         if (rank === 1) tr.classList.add("rank-1");
 
-        cfg.columns.forEach(col => {
+        viewConfig.columns.forEach(col => {
             const td = document.createElement("td");
-            if (col.format === "rank") { td.classList.add("col-rank"); td.textContent = rank === 1 ? "#1 ◈" : `#${rank}`; } 
-            else if (col.format === "size") { const sizes = {1: "SOLO", 2: "DUO", 3: "TRIO"}; td.textContent = sizes[row.teamSize] || "SQUAD"; td.style.color = "var(--text-muted)"; }
+            
+            if (col.format === "rank") { 
+                td.classList.add("col-rank"); td.textContent = rank === 1 ? "#1 ◈" : `#${rank}`; 
+            } 
+            else if (col.format === "size") { 
+                const sizes = {1: "SOLO", 2: "DUO", 3: "TRIO"}; 
+                td.textContent = sizes[row.teamSize] || "SQUAD"; td.style.color = "var(--text-muted)"; 
+            }
             else if (col.format === "diff") { td.textContent = (row.difficulty || "UNKNOWN").toUpperCase(); }
             else if (col.format === "score") { td.classList.add("col-val"); td.textContent = row.score; }
             else if (col.format === "acc") { td.classList.add("col-val"); td.textContent = row.acc + "%"; }
@@ -205,8 +239,8 @@ function renderView() {
                 td.innerHTML = row.roster.split(',').map(player => {
                     const parts = player.split(':');
                     if (parts.length >= 2) {
-                        const opNameSafe = parts[0].replace(/'/g, "\\'"); 
-                        return `<span class="operator-link" style="color: #fff; font-family: 'Quantico', sans-serif;" onclick="openDossier('${opNameSafe}')">${parts[0].toUpperCase()}</span> <span style="color: var(--primary-color);">[${parts[1]}]</span>`;
+                        const safeName = parts[0].replace(/'/g, "\\'"); 
+                        return `<span class="operator-link" style="color: #fff; font-family: 'Quantico';" onclick="openDossier('${safeName}')">${parts[0].toUpperCase()}</span> <span style="color: var(--primary-color);">[${parts[1]}]</span>`;
                     }
                     return player;
                 }).join(' <span style="color: var(--border-bright);">//</span> ');
@@ -216,19 +250,21 @@ function renderView() {
         tbody.appendChild(tr);
     });
 
-    applySearchHighlight();
+    updateSearchHighlights();
 }
 
-function applySearchHighlight() {
+function updateSearchHighlights() {
     const rows = document.querySelectorAll("#leaderboard-body tr");
-    if (!currentSearchQuery) {
-        rows.forEach(row => row.classList.remove("dimmed", "highlight-row"));
+    if (!searchTerm) {
+        rows.forEach(r => r.classList.remove("dimmed", "highlight-row"));
         return;
     }
+    
     rows.forEach(row => {
         if (row.querySelector(".state-cell")) return; 
+        
         const rosterCell = row.cells[row.cells.length - 1]; 
-        if (rosterCell && rosterCell.textContent.toLowerCase().includes(currentSearchQuery)) {
+        if (rosterCell && rosterCell.textContent.toLowerCase().includes(searchTerm)) {
             row.classList.remove("dimmed");
             row.classList.add("highlight-row");
         } else {
@@ -238,101 +274,122 @@ function applySearchHighlight() {
     });
 }
 
-function showError() {
-    document.getElementById("leaderboard-body").innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 50px; color: var(--danger); font-family: 'Quantico', sans-serif; letter-spacing: 2px;">ERROR — COULD NOT REACH DATABASE</td></tr>`;
-}
-
-// --- DOSSIER LOGIC (ALL-TIME CAREER DATA) ---
-function openDossier(operatorName) {
-    // 1. Filter all runs containing this operator from ALL TIME (Active + Archive)
-    const runs = careerData.filter(row => {
+// --- DOSSIER MATH ENGINE ---
+function calculateStats(opName) {
+    const targetOp = opName.toUpperCase();
+    
+    const opRuns = allTimeData.filter(row => {
         const names = row.roster.toUpperCase().split(',').map(p => p.split(':')[0].trim());
-        return names.includes(operatorName.toUpperCase());
+        return names.includes(targetOp);
     });
 
-    if (runs.length === 0) return;
+    if (!opRuns.length) return null;
 
-    // 2. Aggregate Data
-    const deployments = runs.length;
-    let highScore = 0;
-    let totalKills = 0;
-    let maxDist = 0;
-    let sumAcc = 0;
-    const teamCounts = {1:0, 2:0, 3:0, 4:0};
+    let highScore = 0; let totalKills = 0; let maxDist = 0; let sumAcc = 0;
+    const sizeTracker = {1:0, 2:0, 3:0, 4:0};
 
-    runs.forEach(run => {
+    opRuns.forEach(run => {
         let personalScore = run.score; 
         const players = run.roster.toUpperCase().split(',');
-        const myPlayerStr = players.find(p => p.startsWith(operatorName.toUpperCase() + ":"));
-        if(myPlayerStr) {
-            const parts = myPlayerStr.split(':');
-            if(parts.length > 1) personalScore = parseInt(parts[1], 10) || run.score;
+        const me = players.find(p => p.startsWith(targetOp + ":"));
+        
+        if (me) {
+            const parts = me.split(':');
+            if (parts.length > 1) personalScore = parseInt(parts[1], 10) || run.score;
         }
 
-        if (personalScore > highScore) highScore = personalScore;
+        highScore = Math.max(highScore, personalScore);
         totalKills += run.pilots;
-        if (run.maxdist > maxDist) maxDist = run.maxdist;
+        maxDist = Math.max(maxDist, run.maxdist);
         sumAcc += run.acc;
         
-        let sizeKey = run.teamSize >= 4 ? 4 : run.teamSize;
-        teamCounts[sizeKey]++;
+        const sizeKey = run.teamSize >= 4 ? 4 : run.teamSize;
+        sizeTracker[sizeKey]++;
     });
 
-    const avgAcc = Math.round(sumAcc / deployments);
+    const avgAcc = Math.round(sumAcc / opRuns.length);
     
-    let prefSize = 1;
-    let maxCount = 0;
-    for (let size in teamCounts) {
-        if (teamCounts[size] > maxCount) {
-            maxCount = teamCounts[size];
-            prefSize = parseInt(size, 10);
-        }
+    let prefSizeKey = 1; let maxCount = 0;
+    for (const [size, count] of Object.entries(sizeTracker)) {
+        if (count > maxCount) { maxCount = count; prefSizeKey = parseInt(size, 10); }
     }
-    const sizes = {1: "SOLO", 2: "DUO", 3: "TRIO", 4: "SQUAD"};
-    const preferredUnit = sizes[prefSize];
+    const unitLabels = {1: "SOLO", 2: "DUO", 3: "TRIO", 4: "SQUAD"};
 
-    // 3. Determine Glow Tier Hierarchy using CAREER DATA
-    let tier = "tier-standard";
-    let classText = "CLASSIFICATION: STANDARD OP";
-
-    const isTop5AllTime = (sortKey) => {
-        const sorted = [...careerData].sort((a,b) => b[sortKey] - a[sortKey]).slice(0, 5);
-        return sorted.some(row => {
-            const names = row.roster.toUpperCase().split(',').map(p => p.split(':')[0].trim());
-            return names.includes(operatorName.toUpperCase());
-        });
+    const checkTop5 = (metric) => {
+        const sorted = [...allTimeData].sort((a,b) => b[metric] - a[metric]).slice(0, 5);
+        return sorted.some(r => r.roster.toUpperCase().split(',').map(p => p.split(':')[0].trim()).includes(targetOp));
     };
 
-    const isDiamond = isTop5AllTime('score') || isTop5AllTime('acc') || isTop5AllTime('pilots') || isTop5AllTime('maxdist');
+    let tierClass = "tier-standard";
+    let tierText = "CLASSIFICATION: STANDARD OP";
 
-    if (isDiamond) {
-        tier = "tier-diamond";
-        classText = "CLASSIFICATION: ELITE (ALL-TIME TOP 5)";
+    if (checkTop5('score') || checkTop5('acc') || checkTop5('pilots') || checkTop5('maxdist')) {
+        tierClass = "tier-diamond"; tierText = "CLASSIFICATION: ELITE (ALL-TIME TOP 5)";
     } else if (totalKills >= 500) {
-        tier = "tier-emerald";
-        classText = "CLASSIFICATION: ANTI-AIR SPECIALIST";
+        tierClass = "tier-emerald"; tierText = "CLASSIFICATION: ANTI-AIR SPECIALIST";
     } else if (maxDist >= 1500) {
-        tier = "tier-pink";
-        classText = "CLASSIFICATION: EXTREME LONG-RANGE";
+        tierClass = "tier-pink"; tierText = "CLASSIFICATION: EXTREME LONG-RANGE";
     } else if (avgAcc >= 90) {
-        tier = "tier-gold";
-        classText = "CLASSIFICATION: DEADEYE";
+        tierClass = "tier-gold"; tierText = "CLASSIFICATION: DEADEYE";
     }
 
-    // 4. Inject Data into UI
-    document.getElementById('dossier-name').textContent = operatorName.toUpperCase();
-    document.getElementById('dossier-class').textContent = classText;
-    document.getElementById('dos-deps').textContent = deployments;
-    document.getElementById('dos-score').textContent = highScore;
-    document.getElementById('dos-kills').textContent = totalKills;
-    document.getElementById('dos-dist').textContent = maxDist + "m";
-    document.getElementById('dos-acc').textContent = avgAcc + "%";
-    document.getElementById('dos-unit').textContent = preferredUnit;
+    return { 
+        name: targetOp, deps: opRuns.length, highScore, kills: totalKills, 
+        maxDist, avgAcc, unit: unitLabels[prefSizeKey], tierClass, tierText 
+    };
+}
 
+// helper to build the grid html
+function buildDossierInner(stats) {
+    return `
+        <div class="dossier-header">
+            <span class="terminal-eyebrow">// SERVICE RECORD</span>
+            <h2 class="terminal-title" style="color: inherit; text-shadow: inherit;">${stats.name}</h2>
+            <p class="terminal-sub" style="color: inherit; font-weight: bold; margin-top: 5px;">${stats.tierText}</p>
+        </div>
+        <div class="dossier-grid">
+            <div class="stat-box"><span class="stat-label">DEPLOYMENTS</span><span class="stat-val">${stats.deps}</span></div>
+            <div class="stat-box"><span class="stat-label">HIGH SCORE</span><span class="stat-val">${stats.highScore}</span></div>
+            <div class="stat-box"><span class="stat-label">PILOT KILLS</span><span class="stat-val">${stats.kills}</span></div>
+            <div class="stat-box"><span class="stat-label">MAX DISTANCE</span><span class="stat-val">${stats.maxDist}m</span></div>
+            <div class="stat-box"><span class="stat-label">AVG ACCURACY</span><span class="stat-val">${stats.avgAcc}%</span></div>
+            <div class="stat-box"><span class="stat-label">PREFERRED UNIT</span><span class="stat-val">${stats.unit}</span></div>
+        </div>
+    `;
+}
+
+// dynamic modal generator
+function openDossier(operatorInput) {
     const box = document.getElementById('dossier-content');
-    box.className = "dossier-box " + tier;
+    
+    // check if it's a single operator or a rivalry array
+    if (typeof operatorInput === 'string') {
+        const stats = calculateStats(operatorInput);
+        if (!stats) return;
+        
+        box.innerHTML = `<button class="dossier-close" onclick="closeDossier()">×</button>` + buildDossierInner(stats);
+        box.className = `dossier-box ${stats.tierClass}`;
 
-    // Show Modal
+    } else if (Array.isArray(operatorInput)) {
+        const stats1 = calculateStats(operatorInput[0]);
+        const stats2 = calculateStats(operatorInput[1]);
+        if (!stats1 || !stats2) return;
+
+        box.innerHTML = `
+            <button class="dossier-close" onclick="closeDossier()">×</button>
+            <div class="dossier-split">
+                <div class="dossier-side ${stats1.tierClass}" style="color: inherit; text-shadow: inherit;">
+                    ${buildDossierInner(stats1)}
+                </div>
+                <div class="vs-divider"><div class="vs-badge">VS</div></div>
+                <div class="dossier-side ${stats2.tierClass}">
+                    ${buildDossierInner(stats2)}
+                </div>
+            </div>
+        `;
+        box.className = `dossier-box split-view`; // neutral box holding two colored sides
+    }
+
     document.getElementById('dossier-modal').classList.remove('hidden');
 }
 
