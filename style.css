@@ -533,3 +533,76 @@ tbody tr.highlight-row td {
 .dossier-box.split-view {
     max-width: 950px;
 }
+
+/* --- Dossier Classification Progress Bars --- */
+.progress-section {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-color);
+}
+.progress-title {
+    font-family: 'Quantico', sans-serif;
+    font-size: 10px;
+    color: var(--border-bright);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+.progress-complete {
+    font-family: 'Quantico', sans-serif;
+    font-size: 11px;
+    color: var(--primary-color);
+    text-align: center;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px var(--primary-color);
+}
+.progress-item { margin-bottom: 10px; }
+.progress-item:last-child { margin-bottom: 0; }
+.progress-item-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+.progress-label {
+    font-family: 'Quantico', sans-serif;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1.5px;
+}
+.progress-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+.progress-value.met { color: var(--success); }
+.progress-bar-track {
+    height: 3px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.progress-bar-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 2px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.7;
+}
+.progress-bar-fill.complete {
+    background: var(--success);
+    opacity: 1;
+}
+
+/* --- Post-Submission Row Flash --- */
+@keyframes fresh-flash {
+    0%   { background-color: rgba(64, 224, 128, 0.3); }
+    50%  { background-color: rgba(64, 224, 128, 0.15); }
+    100% { background-color: transparent; }
+}
+tbody tr.fresh-entry {
+    animation: fresh-flash 4s ease-out forwards;
+    border-left: 3px solid var(--success) !important;
+}
+tbody tr.fresh-entry td { color: #fff; }
