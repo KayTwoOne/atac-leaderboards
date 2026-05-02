@@ -326,19 +326,35 @@ function calculateStats(opName) {
     const sizeTracker = {1:0, 2:0, 3:0, 4:0};
 
     opRuns.forEach(run => {
+        // Fallbacks (Uses the team's global run stats if playing on an old hash)
         let personalScore = run.score; 
+        let personalKills = run.pilots;
+        let personalAcc = run.acc;
+        let personalDist = run.maxdist;
+
         const players = run.roster.toUpperCase().split(',');
-        const me = players.find(p => p.startsWith(targetOp + ":"));
+        const me = players.find(p => p.trim().startsWith(targetOp + ":"));
         
         if (me) {
             const parts = me.split(':');
-            if (parts.length > 1) personalScore = parseInt(parts[1], 10) || run.score;
+            // Check if this is the new granular ATAC_02 format
+            if (parts.length >= 5) {
+                personalScore = parseInt(parts[1], 10) || run.score;
+                personalKills = parseInt(parts[2], 10) || 0;
+                personalAcc = parseInt(parts[3], 10) || 0;
+                personalDist = parseInt(parts[4], 10) || 0;
+            } 
+            // Fallback for older submissions that just have Name:Score
+            else if (parts.length >= 2) {
+                personalScore = parseInt(parts[1], 10) || run.score;
+            }
         }
 
+        // Add the personal metrics to the operator's career totals
         highScore = Math.max(highScore, personalScore);
-        totalKills += run.pilots;
-        maxDist = Math.max(maxDist, run.maxdist);
-        sumAcc += run.acc;
+        totalKills += personalKills;
+        maxDist = Math.max(maxDist, personalDist);
+        sumAcc += personalAcc;
         
         const sizeKey = run.teamSize >= 4 ? 4 : run.teamSize;
         sizeTracker[sizeKey]++;
