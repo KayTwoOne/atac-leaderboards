@@ -273,8 +273,11 @@ function buildTable() {
                 td.innerHTML = row.roster.split(',').map(player => {
                     const parts = player.split(':');
                     if (parts.length >= 2) {
-                        const safeName = parts[0].replace(/'/g, "\\'"); 
-                        return `<span class="operator-link" style="color: #fff; font-family: 'Quantico';" onclick="openDossier('${safeName}')">${parts[0].toUpperCase()}</span> <span style="color: var(--primary-color);">[${parts[1]}]</span>`;
+                        // FIX: Trim the invisible whitespace before building the button
+                        const cleanName = parts[0].trim(); 
+                        const safeName = cleanName.replace(/'/g, "\\'"); 
+                        
+                        return `<span class="operator-link" style="color: #fff; font-family: 'Quantico';" onclick="openDossier('${safeName}')">${cleanName.toUpperCase()}</span> <span style="color: var(--primary-color);">[${parts[1]}]</span>`;
                     }
                     return player;
                 }).join(' <span style="color: var(--border-bright);">//</span> ');
