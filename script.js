@@ -23,7 +23,14 @@ let pendingHighlight = null;
 document.addEventListener("DOMContentLoaded", () => {
     setupNavigation();
     pullDatabases();
-    initWipeTimer(); 
+    initWipeTimer();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlightParam = urlParams.get('highlight');
+    if (highlightParam) {
+        pendingHighlight = decodeURIComponent(highlightParam).toUpperCase();
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
     
     const searchInput = document.getElementById("operator-search");
     const rivalryBtn = document.getElementById("rivalry-btn");
@@ -140,6 +147,7 @@ async function pullDatabases() {
         
         startLiveTicker(activeSeasonData);
         buildTable();
+        applyPendingHighlight();
 
     } catch (err) {
         updateStatus("error"); 
@@ -424,6 +432,45 @@ function generateRankPatch(deployments) {
     };
 }
 
+// builds tier progress bars shown inside the dossier
+function buildProgressSection(stats) {
+    if (stats.tierClass === 'tier-diamond') {
+        return `
+            <div class="progress-section">
+                <div class="progress-title">// CLASSIFICATION STATUS</div>
+                <div class="progress-complete">◈ ALL THRESHOLDS CLEARED — ELITE OPERATOR</div>
+            </div>`;
+    }
+
+    const items = [
+        { label: "AVG ACCURACY", current: stats.avgAcc,  target: 70,   unit: '%' },
+        { label: "MAX DISTANCE", current: stats.maxDist, target: 1000, unit: 'm' },
+        { label: "PILOT KILLS",  current: stats.kills,   target: 100,  unit: ''  },
+        { label: "DEPLOYMENTS",  current: stats.deps,    target: 15,   unit: ''  },
+    ];
+
+    const bars = items.map(t => {
+        const pct = Math.min(100, Math.round((t.current / t.target) * 100));
+        const met = t.current >= t.target;
+        return `
+            <div class="progress-item">
+                <div class="progress-item-header">
+                    <span class="progress-label">${t.label}</span>
+                    <span class="progress-value${met ? ' met' : ''}">${t.current}${t.unit} / ${t.target}${t.unit}${met ? ' ✓' : ''}</span>
+                </div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill${met ? ' complete' : ''}" style="width: ${pct}%"></div>
+                </div>
+            </div>`;
+    }).join('');
+
+    return `
+        <div class="progress-section">
+            <div class="progress-title">// CLASSIFICATION TARGETS</div>
+            ${bars}
+        </div>`;
+}
+
 // helper to build the grid html
 function buildDossierInner(stats) {
     const rank = generateRankPatch(stats.deps);
@@ -445,6 +492,7 @@ function buildDossierInner(stats) {
             <div class="stat-box"><span class="stat-label">AVG ACCURACY</span><span class="stat-val">${stats.avgAcc}%</span></div>
             <div class="stat-box"><span class="stat-label">PREFERRED UNIT</span><span class="stat-val">${stats.unit}</span></div>
         </div>
+        ${buildProgressSection(stats)}
     `;
 }
 
@@ -485,4 +533,26 @@ function openDossier(operatorInput) {
 
 function closeDossier() {
     document.getElementById('dossier-modal').classList.add('hidden');
+}
+
+function applyPendingHighlight() {
+    if (!pendingHighlight) return;
+    const name = pendingHighlight;
+    pendingHighlight = null;
+
+    setTimeout(() => {
+        const rows = document.querySelectorAll('#leaderboard-body tr');
+        let targetRow = null;
+        rows.forEach(row => {
+            const rosterCell = row.cells[row.cells.length - 1];
+            if (rosterCell && rosterCell.textContent.toUpperCase().includes(name)) {
+                targetRow = row;
+            }
+        });
+        if (targetRow) {
+            targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            targetRow.classList.add('fresh-entry');
+            setTimeout(() => targetRow.classList.remove('fresh-entry'), 4000);
+        }
+    }, 300);
 }
