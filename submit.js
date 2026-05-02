@@ -1,5 +1,5 @@
 // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
-const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwZwdoL2oF4u9H40SQFVi3YMDpUlDC3MDwfO4rKQyxPNa7S6RSn-zn4u3IPTBjhhNC1/exec"; 
+const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxG8LzbqDzRo84LTMTaDuGCkIrDWvFQhXPSCubP5CweUGScniyE5Nq-tr2UqnEsb_xX/exec"; 
 
 document.addEventListener("DOMContentLoaded", () => {
     // These IDs now perfectly match your submit.html
