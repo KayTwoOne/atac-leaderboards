@@ -17,7 +17,8 @@ let activeSeasonData = [];
 let allTimeData = [];      
 let currentView = "global";
 let isReady = false;
-let searchTerm = ""; 
+let searchTerm = "";
+let pendingHighlight = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     setupNavigation();
