@@ -378,30 +378,47 @@ tbody tr.highlight-row td {
 }
 
 /* --- Dynamic Dossier Glow Tiers --- */
-/* DIAMOND: Top 5 (Vivid Hyper-Cyan/Blue) */
+/* DIAMOND: Elite (80%+ acc, 1000m+, 10+ runs) */
 .dossier-box.tier-diamond { border-color: #00f0ff; box-shadow: 0 0 60px rgba(0, 240, 255, 0.35), inset 0 0 20px rgba(0, 240, 255, 0.1); }
-.dossier-box.tier-diamond .terminal-title, .dossier-box.tier-diamond #dossier-class { color: #ffffff; text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff, 0 0 35px #00f0ff; }
-.dossier-box.tier-diamond .stat-box { border-color: rgba(0, 240, 255, 0.4); background: rgba(0, 240, 255, 0.05); }
+.dossier-box.tier-diamond .terminal-title,
+.dossier-side.tier-diamond .terminal-title { color: #ffffff; text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff, 0 0 35px #00f0ff; }
+.dossier-box.tier-diamond .stat-box,
+.dossier-side.tier-diamond .stat-box { border-color: rgba(0, 240, 255, 0.4); background: rgba(0, 240, 255, 0.05); }
 
-/* EMERALD: 500+ Kills */
+/* EMERALD: 100+ Career Pilot Kills */
 .dossier-box.tier-emerald { border-color: #50c878; box-shadow: 0 0 50px rgba(80, 200, 120, 0.25); }
-.dossier-box.tier-emerald .terminal-title, .dossier-box.tier-emerald #dossier-class { color: #50c878; text-shadow: 0 0 15px rgba(80, 200, 120, 0.5); }
-.dossier-box.tier-emerald .stat-box { border-color: rgba(80, 200, 120, 0.3); }
+.dossier-box.tier-emerald .terminal-title,
+.dossier-side.tier-emerald .terminal-title { color: #50c878; text-shadow: 0 0 15px rgba(80, 200, 120, 0.5); }
+.dossier-box.tier-emerald .stat-box,
+.dossier-side.tier-emerald .stat-box { border-color: rgba(80, 200, 120, 0.3); }
 
-/* PINK: 1500m+ Distance */
+/* PINK: 1000m+ Max Distance */
 .dossier-box.tier-pink { border-color: #ff66cc; box-shadow: 0 0 50px rgba(255, 102, 204, 0.25); }
-.dossier-box.tier-pink .terminal-title, .dossier-box.tier-pink #dossier-class { color: #ff66cc; text-shadow: 0 0 15px rgba(255, 102, 204, 0.5); }
-.dossier-box.tier-pink .stat-box { border-color: rgba(255, 102, 204, 0.3); }
+.dossier-box.tier-pink .terminal-title,
+.dossier-side.tier-pink .terminal-title { color: #ff66cc; text-shadow: 0 0 15px rgba(255, 102, 204, 0.5); }
+.dossier-box.tier-pink .stat-box,
+.dossier-side.tier-pink .stat-box { border-color: rgba(255, 102, 204, 0.3); }
 
-/* GOLD: 90%+ Accuracy */
+/* GOLD: 70%+ Career Avg Accuracy */
 .dossier-box.tier-gold { border-color: var(--gold-color); box-shadow: 0 0 50px rgba(255, 215, 64, 0.25); }
-.dossier-box.tier-gold .terminal-title, .dossier-box.tier-gold #dossier-class { color: var(--gold-color); text-shadow: 0 0 15px rgba(255, 215, 64, 0.5); }
-.dossier-box.tier-gold .stat-box { border-color: rgba(255, 215, 64, 0.3); }
+.dossier-box.tier-gold .terminal-title,
+.dossier-side.tier-gold .terminal-title { color: var(--gold-color); text-shadow: 0 0 15px rgba(255, 215, 64, 0.5); }
+.dossier-box.tier-gold .stat-box,
+.dossier-side.tier-gold .stat-box { border-color: rgba(255, 215, 64, 0.3); }
+
+/* VETERAN: 15+ Deployments */
+.dossier-box.tier-veteran { border-color: #6ab0de; box-shadow: 0 0 50px rgba(106, 176, 222, 0.2); }
+.dossier-box.tier-veteran .terminal-title,
+.dossier-side.tier-veteran .terminal-title { color: #6ab0de; text-shadow: 0 0 15px rgba(106, 176, 222, 0.5); }
+.dossier-box.tier-veteran .stat-box,
+.dossier-side.tier-veteran .stat-box { border-color: rgba(106, 176, 222, 0.3); }
 
 /* STANDARD: Silver/White */
 .dossier-box.tier-standard { border-color: #dce4e8; box-shadow: 0 0 40px rgba(220, 228, 232, 0.1); }
-.dossier-box.tier-standard .terminal-title, .dossier-box.tier-standard #dossier-class { color: #ffffff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.4); }
-.dossier-box.tier-standard .stat-box { border-color: rgba(220, 228, 232, 0.2); }
+.dossier-box.tier-standard .terminal-title,
+.dossier-side.tier-standard .terminal-title { color: #ffffff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.4); }
+.dossier-box.tier-standard .stat-box,
+.dossier-side.tier-standard .stat-box { border-color: rgba(220, 228, 232, 0.2); }
 
 /* =========================================================
    LIVE TICKER & RIVALRY UPGRADES
