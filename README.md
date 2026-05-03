@@ -60,7 +60,7 @@ This application operates on a zero-maintenance, highly scalable tech stack:
 ## ⇪ SECURE UPLINK INSTRUCTIONS
 
 1. Complete your ATAC-01 run in-game.
-2. Copy the encrypted `ATAC_02|...` hash string from the post-mission terminal.
+2. Copy the encrypted `ATAC_03|...` hash string from the post-mission terminal.
 3. Navigate to the **Data Uplink Portal** on the live site.
 4. Transmit the hash. The server will decrypt, verify, and log your metrics within 3.5 seconds.
 
