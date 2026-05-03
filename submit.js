@@ -38,7 +38,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 let highlightParam = '';
                 try {
-                    const parts = hashVal.split('|');
+                    let decodedStr = '';
+                    for (let i = 0; i < hashVal.length; i += 2) {
+                        decodedStr += String.fromCharCode(parseInt(hashVal.substr(i, 2), 16));
+                    }
+                    const parts = decodedStr.split('|');
                     if (parts.length >= 5) {
                         const firstName = parts[4].split(',')[0].split(':')[0].trim();
                         if (firstName) highlightParam = `?highlight=${encodeURIComponent(firstName)}`;
