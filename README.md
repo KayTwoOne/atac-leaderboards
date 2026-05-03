@@ -28,11 +28,11 @@ The ATAC-01 Database is a fully automated, serverless leaderboard architecture d
 
 * **The "Invisible Bouncer" Security:** A custom backend intercepts raw Arma 3 hashes, validates structure and uniqueness, and instantly rejects duplicate or malformed submissions before they ever touch the database.
 * **Automated 14-Day Seasons:** An automated cron-trigger sweeps the active ladder, permanently backs up the data to a secure archive, and wipes the public database clean every 14 days to initiate a new tournament cycle.
-* **Interactive Service Records:** Operators can click on any name on the board to pull up a secure Career Dossier—a live-calculated aggregation of their deployments, highest scores, confirmed pilot kills, max engagement distances, and average accuracy across all seasons.
+* **Interactive Service Records:** Operators can click on any name on the board to pull up a secure Career Dossier-a live-calculated aggregation of their deployments, highest scores, confirmed pilot kills, max engagement distances, and average accuracy across all seasons.
 
 ## 🎖️ DYNAMIC THREAT TIERS
 
-Elite operators are automatically assigned classification UI glows based on their all-time career statistics. Tiers are checked in priority order — the highest qualifying tier is awarded.
+Elite operators are automatically assigned classification UI glows based on their all-time career statistics. Tiers are checked in priority order - the highest qualifying tier is awarded.
 
 <div align="center">
 
